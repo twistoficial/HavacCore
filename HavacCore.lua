@@ -1575,5 +1575,14 @@ task.delay(1.2, function()
     print(("[HAVAC CORE v%s] Bloco A carregado. Executor: %s"):format(HAVAC.version, Caps.executorName))
 end)
 
+HAVAC._internal = {
+    Gui = Gui, Window = Window, Sidebar = Sidebar, Content = Content,
+    Body = Body, Header = Header, Footer = Footer,
+    T = T, F = F, Anim = Anim, Track = Track, Theme = Theme,
+    New = New, Corner = Corner, Stroke = Stroke, Padding = Padding,
+    VList = VList, HList = HList, keyShort = keyShort,
+    Locale = Locale, Caps = Caps,
+    c3 = c3, derivePalette = derivePalette,
+}
 _G.HAVAC = HAVAC
 return HAVAC
