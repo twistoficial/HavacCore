@@ -484,11 +484,22 @@ local function buildShell()
         ZIndex = 3,
         Parent = Gui,
     })
-    Corner(Window, 16)
-    WindowStroke = Stroke(Window, T.Border, 1)
+        Corner(Window, 16)
 
-    -- Border glint (gradiente giratório)
-    WindowStroke.Color = Color3.new(1, 1, 1)
+    -- Border separado (não sofre do bug ClipsDescendants + UICorner)
+    local WindowBorder = New("Frame", {
+        Name = "HAVAC_Border",
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        Size = UDim2.new(0, DEFAULT_W, 0, DEFAULT_H),
+        BackgroundTransparency = 1,
+        BorderSizePixel = 0,
+        Visible = false,
+        ZIndex = 50,
+        Parent = Gui,
+    })
+    Corner(WindowBorder, 16)
+    WindowStroke = Stroke(WindowBorder, Color3.new(1, 1, 1), 1)
     WindowGlint = New("UIGradient", { Parent = WindowStroke })
     WindowGlint.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, T.Border),
@@ -497,8 +508,20 @@ local function buildShell()
         ColorSequenceKeypoint.new(0.6, T.Border),
         ColorSequenceKeypoint.new(1, T.Border),
     })
+    local WindowBorderScale = New("UIScale", { Scale = 1, Parent = WindowBorder })
+    HAVAC._border = WindowBorder
+    HAVAC._borderScale = WindowBorderScale
+
+    -- Sincroniza border com window + gira glint
     Track(RunService.RenderStepped:Connect(function()
-        if not Window.Visible then return end
+        if not Window.Visible then
+            if WindowBorder.Visible then WindowBorder.Visible = false end
+            return
+        end
+        if not WindowBorder.Visible then WindowBorder.Visible = true end
+        WindowBorder.Position = Window.Position
+        WindowBorder.Size = Window.Size
+        WindowBorderScale.Scale = WindowScale.Scale
         WindowGlint.Rotation = (os.clock() * 35) % 360
     end))
 
@@ -1287,7 +1310,6 @@ local function closeWindow()
 
     Anim.tween(WindowScale, { Scale = s * 0.95 }, 0.25, "enter", "win_scale")
     Anim.tween(Window, { BackgroundTransparency = 1 }, 0.25, "gentle", "win_bg")
-    Anim.tween(WindowStroke, { Transparency = 1 }, 0.25, "gentle", "win_stroke")
     Anim.tween(Dim, { BackgroundTransparency = 1 }, 0.25, "gentle", "dim")
 
     task.delay(0.26, function()
