@@ -163,9 +163,9 @@ end
 local Theme = {}
 Theme.presets = {
     Havac = { label = "HAVAC",
-        bg = { 8, 8, 10 }, surface = { 18, 18, 22 }, surfaceAlt = { 25, 24, 32 },
-        primary = { 139, 92, 246 }, secondary = { 167, 139, 250 },
-        text = { 245, 243, 255 }, muted = { 161, 161, 170 } },
+    bg = { 10, 8, 16 }, surface = { 24, 22, 34 }, surfaceAlt = { 38, 34, 52 },
+    primary = { 155, 100, 255 }, secondary = { 190, 160, 255 },
+    text = { 250, 248, 255 }, muted = { 145, 140, 165 } },
     Void = { label = "Void",
         bg = { 4, 4, 8 }, surface = { 14, 10, 24 }, surfaceAlt = { 22, 16, 36 },
         primary = { 139, 92, 246 }, secondary = { 90, 60, 180 },
@@ -1218,11 +1218,13 @@ local function __block2(HAVAC)
             LayoutOrder = #PageOrder, Parent = NavScroll,
         })
         Corner(btn, 9)
-        local dot = New("Frame", {
-            Position = UDim2.new(0, 16, 0.5, -4), Size = UDim2.new(0, 8, 0, 8),
-            BackgroundColor3 = T.TextDim, BorderSizePixel = 0, Parent = btn,
-        })
-        Corner(dot, 4)
+        local glyph = New("TextLabel", {
+    Position = UDim2.new(0, 14, 0.5, -9), Size = UDim2.new(0, 18, 0, 18),
+    BackgroundTransparency = 1, Text = "◆",
+    TextColor3 = T.TextDim, FontFace = F.Regular, TextSize = 12,
+    TextXAlignment = Enum.TextXAlignment.Center,
+    TextYAlignment = Enum.TextYAlignment.Center, Parent = btn,
+})
         local bar = New("Frame", {
             AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 0, 0.5, 0),
             Size = UDim2.new(0, 0, 0, 16), BackgroundColor3 = T.Accent,
@@ -1251,7 +1253,7 @@ local function __block2(HAVAC)
             ripple(btn, T.Text)
             HAVAC.showPage(pageId)
         end)
-        return btn
+        return btn, glyph
     end
 
     function HAVAC.showPage(id)
@@ -1271,14 +1273,16 @@ local function __block2(HAVAC)
                     Anim.tween(lbl, { TextColor3 = isActive and T.Text or T.TextDim }, 0.2, "gentle", "navLbl_" .. pid)
                 end
                 for _, ch in ipairs(p.navBtn:GetChildren()) do
-                    if ch:IsA("Frame") and ch.Size.Y.Offset == 16 and not ch:FindFirstChildWhichIsA("UICorner") then
-                        -- skip
-                    elseif ch:IsA("Frame") and ch.Size.Y.Offset == 16 then
-                        Anim.tween(ch, { Size = UDim2.new(0, isActive and 3 or 0, 0, 16) }, 0.25, "smooth", "navBar_" .. pid)
-                    elseif ch:IsA("Frame") and ch.Size.X.Offset == 8 then
-                        Anim.tween(ch, { BackgroundColor3 = isActive and T.Accent or T.TextDim }, 0.2, "gentle", "navDot_" .. pid)
-                    end
-                end
+    if ch:IsA("Frame") and ch.Size.Y.Offset == 16 and not ch:FindFirstChildWhichIsA("UICorner") then
+        -- skip
+    elseif ch:IsA("Frame") and ch.Size.Y.Offset == 16 then
+        Anim.tween(ch, { Size = UDim2.new(0, isActive and 3 or 0, 0, 16) }, 0.25, "smooth", "navBar_" .. pid)
+    elseif ch:IsA("TextLabel") and ch.Text == "◆" then
+        Anim.tween(ch, { TextColor3 = isActive and T.Accent or T.TextDim }, 0.2, "gentle", "navGlyph_" .. pid)
+    elseif ch:IsA("Frame") and ch.Size.X.Offset == 8 then
+        Anim.tween(ch, { BackgroundColor3 = isActive and T.Accent or T.TextDim }, 0.2, "gentle", "navDot_" .. pid)
+    end
+end
             end
         end
         if old and old.frame then
@@ -1298,7 +1302,7 @@ local function __block2(HAVAC)
         if type(id) ~= "string" or id == "" then error("HAVAC.page: invalid id", 2) end
         if Pages[id] then return Pages[id].frame end
         title = title or id
-        local btn = createNavButton(title, id)
+        local btn, glyph = createNavButton(title, id)
         local frame = New("Frame", {
             Name = "Page_" .. id, Size = UDim2.new(1, 0, 0, 0),
             AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1,
@@ -1319,95 +1323,108 @@ local function __block2(HAVAC)
 
     -- CARD
     function HAVAC.card(parent, title)
-        local c = New("Frame", {
-            Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y,
-            BackgroundColor3 = T.Card, BorderSizePixel = 0,
-            ClipsDescendants = true, Parent = parent,
-        })
-        Corner(c, 12)
-        local stroke = Stroke(c, T.BorderLow, 1)
-        local header = New("Frame", {
-            Size = UDim2.new(1, 0, 0, 44), BackgroundColor3 = T.CardAlt,
-            BorderSizePixel = 0, Parent = c,
-        })
-        Corner(header, 12)
-        New("Frame", {
-            AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0),
-            Size = UDim2.new(1, 0, 0.5, 0), BackgroundColor3 = T.CardAlt,
-            BorderSizePixel = 0, Parent = header,
-        })
-        Padding(header, 18, 16, 0, 0)
-        New("Frame", {
-            Position = UDim2.new(0, 0, 0.5, -6), Size = UDim2.new(0, 12, 0, 12),
-            BackgroundColor3 = T.Accent, BorderSizePixel = 0, Parent = header,
-        })
-        New("TextLabel", {
-            Position = UDim2.new(0, 22, 0, 0), Size = UDim2.new(1, -70, 1, 0),
-            BackgroundTransparency = 1, Text = title or "Card",
-            TextColor3 = T.Text, FontFace = F.Bold, TextSize = 13,
-            TextTruncate = Enum.TextTruncate.AtEnd,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            TextYAlignment = Enum.TextYAlignment.Center, Parent = header,
-        })
-        local chevron = New("TextButton", {
-            AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, 0, 0.5, 0),
-            Size = UDim2.new(0, 24, 0, 24), BackgroundTransparency = 1,
-            Text = "", AutoButtonColor = false, Parent = header,
-        })
-        local chevIcon = New("Frame", {
-            AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0.5, 0),
-            Size = UDim2.new(0, 8, 0, 8), BackgroundColor3 = T.TextDim,
-            BorderSizePixel = 0, Rotation = 45, Parent = chevron,
-        })
-        Corner(chevIcon, 1)
-        local separator = New("Frame", {
-            Size = UDim2.new(1, 0, 0, 1), BackgroundColor3 = T.BorderLow,
-            BorderSizePixel = 0, Parent = c,
-        })
-        local contentBody = New("Frame", {
-            Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y,
-            BackgroundTransparency = 1, Parent = c,
-        })
-        Padding(contentBody, 18, 18, 14, 16)
-        VList(contentBody, 10)
-        local collapsed, busy = false, false
-        local function toggleCollapse()
-            if busy then return end
-            busy = true
-            collapsed = not collapsed
-            if collapsed then
-                Anim.tween(chevIcon, { Rotation = -45 }, 0.25, "smooth", "chev_" .. tostring(c))
-                local h = contentBody.AbsoluteSize.Y
-                contentBody.AutomaticSize = Enum.AutomaticSize.None
-                contentBody.Size = UDim2.new(1, 0, 0, h)
-                Anim.tween(contentBody, { Size = UDim2.new(1, 0, 0, 0) }, 0.25, "smooth", "collapse_" .. tostring(c))
-                separator.Visible = false
-                task.wait(0.26)
-                if collapsed then contentBody.Visible = false end
-            else
-                Anim.tween(chevIcon, { Rotation = 45 }, 0.25, "smooth", "chev_" .. tostring(c))
-                contentBody.Visible = true
-                separator.Visible = true
-                contentBody.AutomaticSize = Enum.AutomaticSize.Y
-                contentBody.Size = UDim2.new(1, 0, 0, 0)
-            end
-            busy = false
+    local c = New("Frame", {
+        Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y,
+        BackgroundColor3 = T.Card, BorderSizePixel = 0,
+        ClipsDescendants = true, Parent = parent,
+    })
+    Corner(c, 14)
+    local stroke = Stroke(c, T.Border, 1)
+
+    -- Header — SEM UICorner (o ClipsDescendants do card arredonda os cantos do topo)
+    local header = New("Frame", {
+        Size = UDim2.new(1, 0, 0, 52), BackgroundColor3 = T.CardAlt,
+        BorderSizePixel = 0, Parent = c,
+    })
+    Padding(header, 20, 16, 0, 0)
+    -- Linha fina de separação na base do header
+    New("Frame", {
+        AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0),
+        Size = UDim2.new(1, 0, 0, 1), BackgroundColor3 = T.BorderLow,
+        BorderSizePixel = 0, Parent = header,
+    })
+
+    -- Ícone: barra vertical com gradiente (mais bonito que o quadrado)
+    local icon = New("Frame", {
+        Position = UDim2.new(0, 0, 0.5, -10), Size = UDim2.new(0, 4, 0, 20),
+        BackgroundColor3 = T.Accent, BorderSizePixel = 0, Parent = header,
+    })
+    Corner(icon, 2)
+    New("UIGradient", {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, T.Accent),
+            ColorSequenceKeypoint.new(1, T.Secondary),
+        }),
+        Rotation = 90,
+        Parent = icon,
+    })
+
+    -- Título
+    New("TextLabel", {
+        Position = UDim2.new(0, 16, 0, 0), Size = UDim2.new(1, -70, 1, 0),
+        BackgroundTransparency = 1, Text = title or "Card",
+        TextColor3 = T.Text, FontFace = F.Bold, TextSize = 14,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Center, Parent = header,
+    })
+
+    -- Botão de colapsar (chevron)
+    local chevron = New("TextButton", {
+        AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, 0, 0.5, 0),
+        Size = UDim2.new(0, 28, 0, 28), BackgroundTransparency = 1,
+        Text = "", AutoButtonColor = false, Parent = header,
+    })
+    local chevGlyph = New("TextLabel", {
+        Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1,
+        Text = "▾", TextColor3 = T.TextDim,
+        FontFace = F.Medium, TextSize = 14, Parent = chevron,
+    })
+
+    -- Corpo
+    local contentBody = New("Frame", {
+        Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y,
+        BackgroundTransparency = 1, Parent = c,
+    })
+    Padding(contentBody, 20, 20, 16, 18)
+    VList(contentBody, 12)
+
+    local collapsed, busy = false, false
+    local function toggleCollapse()
+        if busy then return end
+        busy = true
+        collapsed = not collapsed
+        if collapsed then
+            Anim.tween(chevGlyph, { Rotation = -90 }, 0.25, "smooth", "chev_" .. tostring(c))
+            local h = contentBody.AbsoluteSize.Y
+            contentBody.AutomaticSize = Enum.AutomaticSize.None
+            contentBody.Size = UDim2.new(1, 0, 0, h)
+            Anim.tween(contentBody, { Size = UDim2.new(1, 0, 0, 0) }, 0.25, "smooth", "collapse_" .. tostring(c))
+            task.wait(0.26)
+            if collapsed then contentBody.Visible = false end
+        else
+            Anim.tween(chevGlyph, { Rotation = 0 }, 0.25, "smooth", "chev_" .. tostring(c))
+            contentBody.Visible = true
+            contentBody.AutomaticSize = Enum.AutomaticSize.Y
+            contentBody.Size = UDim2.new(1, 0, 0, 0)
         end
-        chevron.MouseButton1Click:Connect(function() ripple(chevron, T.Text); toggleCollapse() end)
-        header.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1
-               or input.UserInputType == Enum.UserInputType.Touch then
-                ripple(header, T.Text); toggleCollapse()
-            end
-        end)
-        c.MouseEnter:Connect(function()
-            Anim.tween(stroke, { Color = T.Border }, 0.2, "gentle", "cs_" .. tostring(c))
-        end)
-        c.MouseLeave:Connect(function()
-            Anim.tween(stroke, { Color = T.BorderLow }, 0.25, "gentle", "cs_" .. tostring(c))
-        end)
-        return contentBody
+        busy = false
     end
+    chevron.MouseButton1Click:Connect(function() ripple(chevron, T.Text); toggleCollapse() end)
+    header.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+           or input.UserInputType == Enum.UserInputType.Touch then
+            ripple(header, T.Text); toggleCollapse()
+        end
+    end)
+    c.MouseEnter:Connect(function()
+        Anim.tween(stroke, { Color = T.Accent }, 0.2, "gentle", "cs_" .. tostring(c))
+    end)
+    c.MouseLeave:Connect(function()
+        Anim.tween(stroke, { Color = T.Border }, 0.25, "gentle", "cs_" .. tostring(c))
+    end)
+    return contentBody
+end
 
     -- STATIC
     function HAVAC.section(parent, text)
@@ -3240,7 +3257,7 @@ local function __block4(HAVAC)
         error("HAVAC CORE Block 4 needs Block 1's _internal.", 2)
     end
     local I = HAVAC._internal
-    local T, Anim, = I.T, I.Anim
+    local T, Anim = I.T, I.Anim
     local New, Corner, Stroke = I.New, I.Corner, I.Stroke
     local Padding = I.Padding
     local Track = I.Track
