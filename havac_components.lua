@@ -1094,4 +1094,116 @@ function HAVAC.notify(kind, title, bodyText, duration)
 
     New("TextLabel", {
         Position = UDim2.new(0, 16, 0, 12),
-        Size = UDim2.new(1, -30, 0, 
+        Size = UDim2.new(1, -30, 0, 18),
+        BackgroundTransparency = 1,
+        Text = tostring(title or ""),
+        TextColor3 = color,
+        FontFace = F.Bold,
+        TextSize = 13,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = wrap,
+    })
+
+    if bodyText and bodyText ~= "" then
+        New("TextLabel", {
+            Position = UDim2.new(0, 16, 0, 32),
+            Size = UDim2.new(1, -30, 0, 16),
+            BackgroundTransparency = 1,
+            Text = tostring(bodyText),
+            TextColor3 = T.TextDim,
+            FontFace = F.Regular,
+            TextSize = 11,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Parent = wrap,
+        })
+    end
+
+    -- Progress bar
+    local barTrack = New("Frame", {
+        Position = UDim2.new(0, 16, 1, -10),
+        Size = UDim2.new(1, -32, 0, 3),
+        BackgroundColor3 = T.CardHover,
+        BorderSizePixel = 0,
+        Parent = wrap,
+    })
+    Corner(barTrack, 2)
+    local barFill = New("Frame", {
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundColor3 = color,
+        BorderSizePixel = 0,
+        Parent = barTrack,
+    })
+    Corner(barFill, 2)
+
+    -- Animate in
+    local targetY = 1
+    local finalOffsetY = offsetY
+    wrap.Position = UDim2.new(1, 40, 1, finalOffsetY)
+    Anim.tween(wrap, { Position = UDim2.new(1, 0, 1, finalOffsetY) }, 0.3, "smooth", "ti_" .. toastSeq)
+    Anim.tween(wrap, { BackgroundTransparency = 0 }, 0.2, "gentle", "tb_" .. toastSeq)
+    Anim.tween(barFill, { Size = UDim2.new(0, 0, 1, 0) }, duration or 3, "linear", "tp_" .. toastSeq)
+
+    task.delay(duration or 3, function()
+        if not wrap.Parent then return end
+        Anim.tween(wrap, { Position = UDim2.new(1, 40, 1, finalOffsetY), BackgroundTransparency = 1 }, 0.3, "gentle", "to_" .. toastSeq)
+        task.delay(0.32, function() if wrap.Parent then wrap:Destroy() end end)
+    end)
+end
+
+-- ============================================================================
+-- SHOWCASE
+-- ============================================================================
+
+function HAVAC.showcase()
+    if HAVAC.pageExists("showcase") then
+        switchPage("showcase")
+        return
+    end
+    HAVAC.page("showcase", "Showcase")
+    local card = HAVAC.card({ id = "showcase" }, "Todos os Componentes")
+
+    HAVAC.label(card, "HAVAC CORE — Showcase completo", { size = 14, bold = true })
+    HAVAC.paragraph(card, "Todos os componentes com o toque premium HAVAC.")
+    HAVAC.divider(card)
+
+    HAVAC.section(card, "BOTÕES")
+    HAVAC.button(card, "Primário", "primary", function()
+        HAVAC.notify("ok", "Primário", "Clicou")
+    end)
+    HAVAC.button(card, "Secundário", function()
+        HAVAC.notify("info", "Secundário", "Clicou")
+    end)
+    HAVAC.buttonRow(card, {
+        { label = "Ação A", cb = function() HAVAC.notify("ok", "A", "OK") end },
+        { label = "Ação B", cb = function() HAVAC.notify("ok", "B", "OK") end },
+    })
+
+    HAVAC.divider(card)
+    HAVAC.section(card, "CONTROLES")
+    HAVAC.toggle(card, "Toggle", false, function(on) print("toggle:", on) end)
+    HAVAC.slider(card, "Slider", 0, 100, 50, function(v) print("slider:", v) end, { suffix = "%" })
+    HAVAC.dropdown(card, "Dropdown", { "Opção A", "Opção B", "Opção C" }, "Opção A", function(v) print("dd:", v) end)
+    HAVAC.input(card, "Input", "Digite algo...", "", function(v) print("input:", v) end)
+
+    HAVAC.divider(card)
+    HAVAC.section(card, "NOTIFICAÇÕES")
+    HAVAC.buttonRow(card, {
+        { label = "OK",   cb = function() HAVAC.notify("ok",   "Sucesso", "Operação concluída") end },
+        { label = "WARN", cb = function() HAVAC.notify("warn", "Aviso",   "Algo requer atenção") end },
+    })
+    HAVAC.buttonRow(card, {
+        { label = "ERR",  cb = function() HAVAC.notify("err",  "Erro",    "Algo falhou") end },
+        { label = "INFO", cb = function() HAVAC.notify("info", "Info",    "Apenas um aviso") end },
+    })
+
+    switchPage("showcase")
+end
+
+-- ============================================================================
+-- BOOT
+-- ============================================================================
+
+print("[HAVAC CORE Block B] Componentes carregados.")
+
+_G.HAVAC = HAVAC
+return HAVAC
