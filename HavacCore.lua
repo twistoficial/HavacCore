@@ -4419,7 +4419,6 @@ UI.start = function()
     UI._started = true
     -- the Settings entry always goes last in the sidebar
     AddNavItem("settings", "Settings",   "settings")
- 
 
 -- the page open when the script last ran (Home the first time, or when that page no longer exists)
 UI._selectPage((Config.lastPage and pages[Config.lastPage]) and Config.lastPage or "home")
