@@ -366,19 +366,11 @@ local Config = {
     themes      = {},
     islandX     = 0.5,
     islandY     = 12,
-        local Config = {
-    toggleKey   = "RightControl",
-    -- ... (deixe o resto como está) ...
-    islandX     = 0.5,
-    islandY     = 12,
-    
-    -- ADICIONE ESTAS LINHAS AQUI:
     brandLayout    = (opts.brand and opts.brand.layout) or "row",
     brandLogoSize  = (opts.brand and opts.brand.logoSize) or 32,
     brandHeight    = (opts.brand and opts.brand.height) or 60,
     brandTitleSize = (opts.brand and opts.brand.titleSize) or 14,
     brandSubtitle  = (opts.brand and opts.brand.subtitle) or "Beta",
-}
 }
 local HttpService = game:GetService("HttpService")
 -- writes are gathered: a slider being dragged asks to save on every step, the file is written once 0.4 s after
@@ -4421,13 +4413,13 @@ Button(panicBody, "Panic now (stop everything)", panic, nil, "alert-triangle")
 end)()
 
 -- ============================================================================
-
 -- boot: call once, after every tab has been added
 UI.start = function()
     if UI._started then return end
     UI._started = true
--- the Settings entry always goes last in the sidebar
-AddNavItem("settings", "Settings",   "settings")
+    -- the Settings entry always goes last in the sidebar
+    AddNavItem("settings", "Settings",   "settings")
+    ...
 
 -- the page open when the script last ran (Home the first time, or when that page no longer exists)
 UI._selectPage((Config.lastPage and pages[Config.lastPage]) and Config.lastPage or "home")
@@ -4783,39 +4775,7 @@ function Okuma.new(opts)
     local UI = build(opts)
     return setmetatable({ UI = UI, Config = UI.config, started = false, _ids = {}, _keys = {}, _inits = {} }, Win)
 end
--- API para editar o Logo / Brand ao vivo
-function UI.setBrand(opts)
-    if opts.layout then Config.brandLayout = opts.layout end
-    if opts.logoSize then Config.brandLogoSize = opts.logoSize end
-    if opts.height then Config.brandHeight = opts.height end
-    if opts.titleSize then Config.brandTitleSize = opts.titleSize end
-    if opts.subtitle then Config.brandSubtitle = opts.subtitle end
-    
-    if opts.title then
-        BRAND = opts.title
-        brandTitle.Text = BRAND
-        headerTitle.Text = "Welcome to " .. BRAND .. "!"
-    end
-    
-    if opts.logoId then
-        ICONS.logo = "rbxassetid://" .. tostring(opts.logoId):match("%d+")
-        brandIcon:Destroy()
-        brandIcon = MakeIcon(brandIconHolder, "logo", Config.brandLogoSize, T.Text)
-        brandIcon.Size = UDim2.new(1, 0, 1, 0)
-        Corner(brandIcon, math.floor(Config.brandLogoSize * 0.3))
-    end
-    
-    Apply.brand()
-    SaveConfig()
-end
 
--- Se quiser mudar o ícone do app no topo (Home)
-function UI.setHeaderIcon(id)
-    ICONS.header = "rbxassetid://" .. tostring(id):match("%d+")
-    if headerIcon and headerIcon.Parent then headerIcon:Destroy() end
-    headerIcon = MakeIcon(header, ICONS.header, 24, T.Text)
-    headerIcon.Position = UDim2.new(0, 0, 0.5, -12)
-end
 function Win:Tab(name, icon)
     local base = slug(name):lower()
     if base == "" then base = "tab" end
