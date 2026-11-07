@@ -378,8 +378,7 @@ local function SaveConfig(now)
     if not now then
         return -- ← AUTO-SAVE DESATIVADO
     end
-    if type(writefile) ~= "function" then return end
-    ...
+    if type(writefile) ~= "function" then return 
     if type(writefile) ~= "function" then return end
     local snap = {}
     -- keys a game script marked volatile (UI.volatile) are never written to disk
