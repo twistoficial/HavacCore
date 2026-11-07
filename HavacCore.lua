@@ -373,7 +373,7 @@ local Config = {
 }
 local HttpService = game:GetService("HttpService")
 -- writes are gathered: a slider being dragged asks to save on every step, the file is written once 0.4 s after
--- the last ask. SaveConfig(true) writes right away (unload); after unload nothing is written any more.
+-- the last ask. SaveConfig(true) writes right away (unload); after unload nothing is written any more. 
 local function SaveConfig(now)
     if not now then
         return -- ← AUTO-SAVE DESATIVADO
