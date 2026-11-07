@@ -376,14 +376,10 @@ local HttpService = game:GetService("HttpService")
 -- the last ask. SaveConfig(true) writes right away (unload); after unload nothing is written any more.
 local function SaveConfig(now)
     if not now then
-        if UI._saveQueued then return end
-        UI._saveQueued = true
-        task.delay(0.4, function()
-            UI._saveQueued = false
-            if not UI._saveDead then SaveConfig(true) end
-        end)
-        return
+        return -- ← AUTO-SAVE DESATIVADO
     end
+    if type(writefile) ~= "function" then return end
+    ...
     if type(writefile) ~= "function" then return end
     local snap = {}
     -- keys a game script marked volatile (UI.volatile) are never written to disk
