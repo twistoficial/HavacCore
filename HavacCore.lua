@@ -1,5 +1,3 @@
-
-
 local function build(opts)
 opts = opts or {}
 local ID = (tostring(opts.id or "app"):gsub("[^%w_]", "")):lower()
@@ -61,7 +59,7 @@ local ICONS = {
     discord       = "rbxassetid://18505728250",
     globe         = "rbxassetid://121176334529781",
     checklist     = "rbxassetid://13289068631",
-    chevron_right = "rbxassetid://89820329941528",
+    chevron_right = "rbxassetid://18505728250",
     overview      = "",
     beta_badge    = "",
     tag           = "",
@@ -70,6 +68,7 @@ local ICONS = {
     chevron_down  = "",
     unload        = "",
     volt          = "",
+    eb_delta      = "rbxassetid://104217305000999",
 }
 
 local LUCIDE_FALLBACK = {
