@@ -3177,9 +3177,6 @@ end
 -- bound controls: the value lives in Config[key] and is saved on every change; cb(v) runs after the save.
 -- cb is not called when the control is built (same as UI.toggle); it runs when a config load changes the value.
 UI.bind = {}
-function UI._binder(key, cb)
-    return function(v) Config[key] = v; SaveConfig(); if cb then cb(v) end end
-end
 function UI._bindAdd(key, ctl, cb)
     UI._bound[#UI._bound + 1] = { key = key, ctl = ctl, cb = cb }
     return ctl
