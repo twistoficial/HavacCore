@@ -1,33 +1,3 @@
---[[
-    OkumaUI  -  executor UI library  (v1.0.0)
-    UI shell by the original Okuma author; packaged as a library: no game code, one entry point, fluent API.
-
-    LOAD
-        local Okuma = loadstring(readfile("OkumaUI.lua"))()        -- or game:HttpGet("<raw url>")
-
-    QUICK START
-        local win  = Okuma.new{ title = "My Hub", id = "myhub", discord = "https://discord.gg/xxxx" }
-        local tab  = win:Tab("Combat", "target")                   -- sidebar page   (icon: Lucide name)
-        local box  = tab:Card("Aimbot")                            -- titled card
-        box:Toggle("Enable", false, function(on) end)              -- (label, default, callback, opts)
-        box:Slider("FOV", 30, 500, 150, function(v) end, { step = 1, suffix = " px" })
-        box:Dropdown("Part", { "Head", "Torso" }, "Head", function(v) end)
-        box:Keybind("Aim key", "E", function() end)                -- callback = key pressed
-        box:Color("ESP colour", Color3.fromRGB(255, 60, 60), function(c) end)
-        box:Input("Name", "type here", "", function(text) end)
-        box:Button("Reset", function() end, "primary")
-        win:Start()                                                -- always last
-
-    Controls save themselves to disk (okuma_<id>.json) and restore on the next run; their callbacks run once
-    on Start with the restored value so your game logic matches the UI. opts: { key = "myKey", save = false,
-    init = false, desc = "tooltip" }.   win:Get("myKey") / win:Set("myKey", v) read and write any saved value.
-
-    OPTIONS (Okuma.new)
-        title    window / pill name        id       unique name: config file, GUI names, cleanup (letters/digits)
-        discord  link for the Community row (omit to hide it)       logo     asset id for the logo (default: icon)
-        lucide   false = never download the icon pack (icons the shell has no asset id for then stay blank)
-        config   table of default settings, e.g. { toggleKey = "RightShift", minimizeOnStart = true }
-]]
 
 
 local function build(opts)
@@ -778,25 +748,91 @@ local sidebar = New("CanvasGroup", {
 New("Frame", { Size = UDim2.new(0, 1, 1, 0), Position = UDim2.new(1, -1, 0, 0),
     BackgroundColor3 = T.BorderLow, BorderSizePixel = 0, Parent = sidebar })
 
-do
-local brand = New("Frame", { Size = UDim2.new(1, 0, 0, 60), BackgroundTransparency = 1, Parent = sidebar })
-Padding(brand, 16, 12, 16, 10); hookDrag(brand)
+-- ============================================================================
+-- BRAND DINÂMICO (Editável via UI.setBrand)
+-- ============================================================================
+local brandContainer = New("Frame", { Size = UDim2.new(1, 0, 0, Config.brandHeight), BackgroundTransparency = 1, Parent = sidebar })
+Padding(brandContainer, 16, 12, 16, 10); hookDrag(brandContainer)
 
-local brandTile = New("Frame", {
-    Size = UDim2.new(0, 32, 0, 32), BackgroundTransparency = 1,
-    BorderSizePixel = 0, Parent = brand,
-})
-Corner(brandTile, 10)
-local brandGlyph = MakeIcon(brandTile, "logo", 32, T.BgDeep); Corner(brandGlyph, 10)
-brandGlyph.AnchorPoint = Vector2.new(0.5, 0.5)
-brandGlyph.Position = UDim2.new(0.5, 0, 0.5, 0)
--- the logo wiggles when the mouse comes over the brand
-brand.MouseEnter:Connect(function()
-    local g = brandTile:FindFirstChildWhichIsA("ImageLabel")
+local brandIconHolder = New("Frame", { BackgroundTransparency = 1, BorderSizePixel = 0, Parent = brandContainer })
+local brandIcon = MakeIcon(brandIconHolder, "logo", Config.brandLogoSize, T.Text); Corner(brandIcon, math.floor(Config.brandLogoSize * 0.3))
+brandIcon.Size = UDim2.new(1, 0, 1, 0)
+
+local brandTitle = New("TextLabel", { BackgroundTransparency = 1, Text = BRAND, TextColor3 = T.Text,
+    FontFace = F.Bold, TextSize = Config.brandTitleSize, TextXAlignment = Enum.TextXAlignment.Left, Parent = brandContainer })
+local brandSub = New("TextLabel", { BackgroundTransparency = 1, Text = Config.brandSubtitle, TextColor3 = T.TextDim,
+    FontFace = F.Regular, TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Parent = brandContainer })
+
+brandContainer.MouseEnter:Connect(function()
+    local g = brandIconHolder:FindFirstChildWhichIsA("ImageLabel")
     if not g then return end
-    Tween(g, { Rotation = -12, Size = UDim2.new(0, 35, 0, 35) }, 0.12, Enum.EasingStyle.Quad)
-    task.delay(0.12, function() Tween(g, { Rotation = 0, Size = UDim2.new(0, 32, 0, 32) }, 0.6, Enum.EasingStyle.Elastic) end)
+    Tween(g, { Rotation = -12, Size = UDim2.new(1.1, 0, 1.1, 0) }, 0.12, Enum.EasingStyle.Quad)
+    task.delay(0.12, function() Tween(g, { Rotation = 0, Size = UDim2.new(1, 0, 1, 0) }, 0.6, Enum.EasingStyle.Elastic) end)
 end)
+
+function Apply.brand()
+    local layout = Config.brandLayout or "row"
+    local size = Config.brandLogoSize or 32
+    local h = Config.brandHeight or 60
+
+    brandContainer.Size = UDim2.new(1, 0, 0, h)
+    
+    brandIconHolder.Size = UDim2.new(0, size, 0, size)
+    brandTitle.Text = BRAND
+    brandTitle.TextSize = Config.brandTitleSize
+    brandSub.Text = Config.brandSubtitle
+
+    if layout == "row" then
+        brandIconHolder.AnchorPoint = Vector2.new(0, 0.5)
+        brandIconHolder.Position = UDim2.new(0, 0, 0.5, 0)
+
+        brandTitle.Visible = true
+        brandTitle.Position = UDim2.new(0, size + 12, 0, 4)
+        brandTitle.Size = UDim2.new(1, -(size + 12), 0, 16)
+        brandTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+        brandSub.Visible = Config.brandSubtitle ~= ""
+        brandSub.Position = UDim2.new(0, size + 12, 0, 22)
+        brandSub.Size = UDim2.new(1, -(size + 12), 0, 12)
+        brandSub.TextXAlignment = Enum.TextXAlignment.Left
+
+    elseif layout == "column" then
+        brandIconHolder.AnchorPoint = Vector2.new(0.5, 0)
+        brandIconHolder.Position = UDim2.new(0.5, 0, 0, 0)
+
+        brandTitle.Visible = true
+        brandTitle.Position = UDim2.new(0, 0, 0, size + 6)
+        brandTitle.Size = UDim2.new(1, 0, 0, 16)
+        brandTitle.TextXAlignment = Enum.TextXAlignment.Center
+
+        brandSub.Visible = Config.brandSubtitle ~= ""
+        brandSub.Position = UDim2.new(0, 0, 0, size + 24)
+        brandSub.Size = UDim2.new(1, 0, 0, 12)
+        brandSub.TextXAlignment = Enum.TextXAlignment.Center
+
+    elseif layout == "icon-only" then
+        brandIconHolder.AnchorPoint = Vector2.new(0.5, 0.5)
+        brandIconHolder.Position = UDim2.new(0.5, 0, 0.5, 0)
+        brandTitle.Visible = false
+        brandSub.Visible = false
+
+    elseif layout == "banner" then
+        brandIconHolder.AnchorPoint = Vector2.new(0.5, 0.5)
+        brandIconHolder.Position = UDim2.new(0.5, 0, 0.5, 0)
+        brandIconHolder.Size = UDim2.new(0, h, 0, h)
+
+        brandTitle.Visible = true
+        brandTitle.Position = UDim2.new(0, 0, 0.5, -8)
+        brandTitle.Size = UDim2.new(1, 0, 0, 16)
+        brandTitle.TextXAlignment = Enum.TextXAlignment.Center
+
+        brandSub.Visible = Config.brandSubtitle ~= ""
+        brandSub.Position = UDim2.new(0, 0, 0.5, 8)
+        brandSub.Size = UDim2.new(1, 0, 0, 12)
+        brandSub.TextXAlignment = Enum.TextXAlignment.Center
+    end
+end
+Apply.brand()
 
 New("TextLabel", { Position = UDim2.new(0, 44, 0, 4), Size = UDim2.new(1, -44, 0, 16),
     BackgroundTransparency = 1, Text = BRAND, TextColor3 = T.Text,
@@ -808,7 +844,7 @@ end
 
 -- the sidebar list scrolls when a game has more pages than fit; with few pages it looks exactly as before
 local navHolder = New("ScrollingFrame", {
-    Position = UDim2.new(0, 0, 0, 72), Size = UDim2.new(1, 0, 1, -148),
+    Position = UDim2.new(0, 0, 0, Config.brandHeight + 12), Size = UDim2.new(1, 0, 1, -(Config.brandHeight + 88)),
     BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 2, ScrollBarImageColor3 = T.Border,
     ScrollBarImageTransparency = 0.4, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y,
     ScrollingDirection = Enum.ScrollingDirection.Y, Parent = sidebar,
@@ -4743,7 +4779,39 @@ function Okuma.new(opts)
     local UI = build(opts)
     return setmetatable({ UI = UI, Config = UI.config, started = false, _ids = {}, _keys = {}, _inits = {} }, Win)
 end
+-- API para editar o Logo / Brand ao vivo
+function UI.setBrand(opts)
+    if opts.layout then Config.brandLayout = opts.layout end
+    if opts.logoSize then Config.brandLogoSize = opts.logoSize end
+    if opts.height then Config.brandHeight = opts.height end
+    if opts.titleSize then Config.brandTitleSize = opts.titleSize end
+    if opts.subtitle then Config.brandSubtitle = opts.subtitle end
+    
+    if opts.title then
+        BRAND = opts.title
+        brandTitle.Text = BRAND
+        headerTitle.Text = "Welcome to " .. BRAND .. "!"
+    end
+    
+    if opts.logoId then
+        ICONS.logo = "rbxassetid://" .. tostring(opts.logoId):match("%d+")
+        brandIcon:Destroy()
+        brandIcon = MakeIcon(brandIconHolder, "logo", Config.brandLogoSize, T.Text)
+        brandIcon.Size = UDim2.new(1, 0, 1, 0)
+        Corner(brandIcon, math.floor(Config.brandLogoSize * 0.3))
+    end
+    
+    Apply.brand()
+    SaveConfig()
+end
 
+-- Se quiser mudar o ícone do app no topo (Home)
+function UI.setHeaderIcon(id)
+    ICONS.header = "rbxassetid://" .. tostring(id):match("%d+")
+    if headerIcon and headerIcon.Parent then headerIcon:Destroy() end
+    headerIcon = MakeIcon(header, ICONS.header, 24, T.Text)
+    headerIcon.Position = UDim2.new(0, 0, 0.5, -12)
+end
 function Win:Tab(name, icon)
     local base = slug(name):lower()
     if base == "" then base = "tab" end
