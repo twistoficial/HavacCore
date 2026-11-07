@@ -366,6 +366,19 @@ local Config = {
     themes      = {},
     islandX     = 0.5,
     islandY     = 12,
+        local Config = {
+    toggleKey   = "RightControl",
+    -- ... (deixe o resto como está) ...
+    islandX     = 0.5,
+    islandY     = 12,
+    
+    -- ADICIONE ESTAS LINHAS AQUI:
+    brandLayout    = (opts.brand and opts.brand.layout) or "row",
+    brandLogoSize  = (opts.brand and opts.brand.logoSize) or 32,
+    brandHeight    = (opts.brand and opts.brand.height) or 60,
+    brandTitleSize = (opts.brand and opts.brand.titleSize) or 14,
+    brandSubtitle  = (opts.brand and opts.brand.subtitle) or "Beta",
+}
 }
 local HttpService = game:GetService("HttpService")
 -- writes are gathered: a slider being dragged asks to save on every step, the file is written once 0.4 s after
@@ -833,15 +846,6 @@ function Apply.brand()
     end
 end
 Apply.brand()
-
-New("TextLabel", { Position = UDim2.new(0, 44, 0, 4), Size = UDim2.new(1, -44, 0, 16),
-    BackgroundTransparency = 1, Text = BRAND, TextColor3 = T.Text,
-    FontFace = F.Bold, TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, Parent = brand })
-New("TextLabel", { Position = UDim2.new(0, 44, 0, 22), Size = UDim2.new(1, -44, 0, 12),
-    BackgroundTransparency = 1, Text = "Beta", TextColor3 = T.TextDim,
-    FontFace = F.Regular, TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Parent = brand })
-end
-
 -- the sidebar list scrolls when a game has more pages than fit; with few pages it looks exactly as before
 local navHolder = New("ScrollingFrame", {
     Position = UDim2.new(0, 0, 0, Config.brandHeight + 12), Size = UDim2.new(1, 0, 1, -(Config.brandHeight + 88)),
