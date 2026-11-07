@@ -3194,6 +3194,14 @@ function UI._refreshBound()
         end
     end
 end
+-- wrapper de callback dos controles bind: salva em Config e repassa pro cb do usuário
+function UI._binder(key, cb)
+    return function(v)
+        Config[key] = v
+        SaveConfig()
+        if cb then safe(cb, v) end
+    end
+end
 function UI.bind.toggle(parent, label, key, cb, opts)
     return UI._bindAdd(key, Toggle(parent, label, Config[key] == true, UI._binder(key, cb), opts), cb)
 end
