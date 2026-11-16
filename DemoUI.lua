@@ -29,7 +29,6 @@
         config   table of default settings, e.g. { toggleKey = "RightShift", minimizeOnStart = true }
 ]]
 
-
 local function build(opts)
 opts = opts or {}
 local ID = (tostring(opts.id or "app"):gsub("[^%w_]", "")):lower()
@@ -88,10 +87,10 @@ local ICONS = {
     shuffle       = "rbxassetid://71866957367213",
     lowest        = "rbxassetid://71866957367213",
     copy          = "rbxassetid://85360060654230",
-    discord       = "rbxassetid://18505728250",
+    discord       = "rbxassetid://10367063073",
     globe         = "rbxassetid://121176334529781",
     checklist     = "rbxassetid://13289068631",
-    chevron_right = "rbxassetid://89820329941528",
+    chevron_right = "rbxassetid://18505728250",
     overview      = "",
     beta_badge    = "",
     tag           = "",
@@ -100,6 +99,7 @@ local ICONS = {
     chevron_down  = "",
     unload        = "",
     volt          = "",
+    eb_delta      = "rbxassetid://104217305000999",
 }
 
 local LUCIDE_FALLBACK = {
@@ -396,19 +396,18 @@ local Config = {
     themes      = {},
     islandX     = 0.5,
     islandY     = 12,
+    brandLayout    = (opts.brand and opts.brand.layout) or "row",
+    brandLogoSize  = (opts.brand and opts.brand.logoSize) or 32,
+    brandHeight    = (opts.brand and opts.brand.height) or 60,
+    brandTitleSize = (opts.brand and opts.brand.titleSize) or 14,
+    brandSubtitle  = (opts.brand and opts.brand.subtitle) or "Beta",
 }
 local HttpService = game:GetService("HttpService")
 -- writes are gathered: a slider being dragged asks to save on every step, the file is written once 0.4 s after
--- the last ask. SaveConfig(true) writes right away (unload); after unload nothing is written any more.
+-- the last ask. SaveConfig(true) writes right away (unload); after unload nothing is written any more. 
 local function SaveConfig(now)
     if not now then
-        if UI._saveQueued then return end
-        UI._saveQueued = true
-        task.delay(0.4, function()
-            UI._saveQueued = false
-            if not UI._saveDead then SaveConfig(true) end
-        end)
-        return
+        return -- ← AUTO-SAVE DESATIVADO
     end
     if type(writefile) ~= "function" then return end
     local snap = {}
@@ -778,37 +777,94 @@ local sidebar = New("CanvasGroup", {
 New("Frame", { Size = UDim2.new(0, 1, 1, 0), Position = UDim2.new(1, -1, 0, 0),
     BackgroundColor3 = T.BorderLow, BorderSizePixel = 0, Parent = sidebar })
 
-do
-local brand = New("Frame", { Size = UDim2.new(1, 0, 0, 60), BackgroundTransparency = 1, Parent = sidebar })
-Padding(brand, 16, 12, 16, 10); hookDrag(brand)
+-- ============================================================================
+-- BRAND DINÂMICO (Editável via UI.setBrand)
+-- ============================================================================
+local brandContainer = New("Frame", { Size = UDim2.new(1, 0, 0, Config.brandHeight), BackgroundTransparency = 1, Parent = sidebar })
+Padding(brandContainer, 16, 12, 16, 10); hookDrag(brandContainer)
 
-local brandTile = New("Frame", {
-    Size = UDim2.new(0, 32, 0, 32), BackgroundTransparency = 1,
-    BorderSizePixel = 0, Parent = brand,
-})
-Corner(brandTile, 10)
-local brandGlyph = MakeIcon(brandTile, "logo", 32, T.BgDeep); Corner(brandGlyph, 10)
-brandGlyph.AnchorPoint = Vector2.new(0.5, 0.5)
-brandGlyph.Position = UDim2.new(0.5, 0, 0.5, 0)
--- the logo wiggles when the mouse comes over the brand
-brand.MouseEnter:Connect(function()
-    local g = brandTile:FindFirstChildWhichIsA("ImageLabel")
+local brandIconHolder = New("Frame", { BackgroundTransparency = 1, BorderSizePixel = 0, Parent = brandContainer })
+local brandIcon = MakeIcon(brandIconHolder, "logo", Config.brandLogoSize, T.Text); Corner(brandIcon, math.floor(Config.brandLogoSize * 0.3))
+brandIcon.Size = UDim2.new(1, 0, 1, 0)
+
+local brandTitle = New("TextLabel", { BackgroundTransparency = 1, Text = BRAND, TextColor3 = T.Text,
+    FontFace = F.Bold, TextSize = Config.brandTitleSize, TextXAlignment = Enum.TextXAlignment.Left, Parent = brandContainer })
+local brandSub = New("TextLabel", { BackgroundTransparency = 1, Text = Config.brandSubtitle, TextColor3 = T.TextDim,
+    FontFace = F.Regular, TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Parent = brandContainer })
+
+brandContainer.MouseEnter:Connect(function()
+    local g = brandIconHolder:FindFirstChildWhichIsA("ImageLabel")
     if not g then return end
-    Tween(g, { Rotation = -12, Size = UDim2.new(0, 35, 0, 35) }, 0.12, Enum.EasingStyle.Quad)
-    task.delay(0.12, function() Tween(g, { Rotation = 0, Size = UDim2.new(0, 32, 0, 32) }, 0.6, Enum.EasingStyle.Elastic) end)
+    Tween(g, { Rotation = -12, Size = UDim2.new(1.1, 0, 1.1, 0) }, 0.12, Enum.EasingStyle.Quad)
+    task.delay(0.12, function() Tween(g, { Rotation = 0, Size = UDim2.new(1, 0, 1, 0) }, 0.6, Enum.EasingStyle.Elastic) end)
 end)
 
-New("TextLabel", { Position = UDim2.new(0, 44, 0, 4), Size = UDim2.new(1, -44, 0, 16),
-    BackgroundTransparency = 1, Text = BRAND, TextColor3 = T.Text,
-    FontFace = F.Bold, TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, Parent = brand })
-New("TextLabel", { Position = UDim2.new(0, 44, 0, 22), Size = UDim2.new(1, -44, 0, 12),
-    BackgroundTransparency = 1, Text = "Beta", TextColor3 = T.TextDim,
-    FontFace = F.Regular, TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, Parent = brand })
-end
+function Apply.brand()
+    local layout = Config.brandLayout or "row"
+    local size = Config.brandLogoSize or 32
+    local h = Config.brandHeight or 60
 
+    brandContainer.Size = UDim2.new(1, 0, 0, h)
+    
+    brandIconHolder.Size = UDim2.new(0, size, 0, size)
+    brandTitle.Text = BRAND
+    brandTitle.TextSize = Config.brandTitleSize
+    brandSub.Text = Config.brandSubtitle
+
+    if layout == "row" then
+        brandIconHolder.AnchorPoint = Vector2.new(0, 0.5)
+        brandIconHolder.Position = UDim2.new(0, 0, 0.5, 0)
+
+        brandTitle.Visible = true
+        brandTitle.Position = UDim2.new(0, size + 12, 0, 4)
+        brandTitle.Size = UDim2.new(1, -(size + 12), 0, 16)
+        brandTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+        brandSub.Visible = Config.brandSubtitle ~= ""
+        brandSub.Position = UDim2.new(0, size + 12, 0, 22)
+        brandSub.Size = UDim2.new(1, -(size + 12), 0, 12)
+        brandSub.TextXAlignment = Enum.TextXAlignment.Left
+
+    elseif layout == "column" then
+        brandIconHolder.AnchorPoint = Vector2.new(0.5, 0)
+        brandIconHolder.Position = UDim2.new(0.5, 0, 0, 0)
+
+        brandTitle.Visible = true
+        brandTitle.Position = UDim2.new(0, 0, 0, size + 6)
+        brandTitle.Size = UDim2.new(1, 0, 0, 16)
+        brandTitle.TextXAlignment = Enum.TextXAlignment.Center
+
+        brandSub.Visible = Config.brandSubtitle ~= ""
+        brandSub.Position = UDim2.new(0, 0, 0, size + 24)
+        brandSub.Size = UDim2.new(1, 0, 0, 12)
+        brandSub.TextXAlignment = Enum.TextXAlignment.Center
+
+    elseif layout == "icon-only" then
+        brandIconHolder.AnchorPoint = Vector2.new(0.5, 0.5)
+        brandIconHolder.Position = UDim2.new(0.5, 0, 0.5, 0)
+        brandTitle.Visible = false
+        brandSub.Visible = false
+
+    elseif layout == "banner" then
+        brandIconHolder.AnchorPoint = Vector2.new(0.5, 0.5)
+        brandIconHolder.Position = UDim2.new(0.5, 0, 0.5, 0)
+        brandIconHolder.Size = UDim2.new(0, h, 0, h)
+
+        brandTitle.Visible = true
+        brandTitle.Position = UDim2.new(0, 0, 0.5, -8)
+        brandTitle.Size = UDim2.new(1, 0, 0, 16)
+        brandTitle.TextXAlignment = Enum.TextXAlignment.Center
+
+        brandSub.Visible = Config.brandSubtitle ~= ""
+        brandSub.Position = UDim2.new(0, 0, 0.5, 8)
+        brandSub.Size = UDim2.new(1, 0, 0, 12)
+        brandSub.TextXAlignment = Enum.TextXAlignment.Center
+    end
+end
+Apply.brand()
 -- the sidebar list scrolls when a game has more pages than fit; with few pages it looks exactly as before
 local navHolder = New("ScrollingFrame", {
-    Position = UDim2.new(0, 0, 0, 72), Size = UDim2.new(1, 0, 1, -148),
+    Position = UDim2.new(0, 0, 0, Config.brandHeight + 12), Size = UDim2.new(1, 0, 1, -(Config.brandHeight + 88)),
     BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 2, ScrollBarImageColor3 = T.Border,
     ScrollBarImageTransparency = 0.4, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y,
     ScrollingDirection = Enum.ScrollingDirection.Y, Parent = sidebar,
@@ -2052,9 +2108,10 @@ Track(gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(function() Apply.scal
 -- PAGES  (with fade transition)
 -- ============================================================================
 local function MakePage(id, title, iconName)
-    local frame = New("CanvasGroup", {
+    -- a plain Frame: a CanvasGroup this tall is rendered through a size-limited texture and looks low resolution
+    local frame = New("Frame", {
         Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y,
-        BackgroundTransparency = 1, GroupTransparency = 1, Visible = false, Parent = body,
+        BackgroundTransparency = 1, BorderSizePixel = 0, Visible = false, Parent = body,
     })
     VList(frame, 14)
     -- top padding the page switch animates (the page rises into place); 0 at rest, so nothing moves
@@ -2108,18 +2165,10 @@ UI._selectPage = function(id)
     -- fade + rise transition (one tween per page, never leaves the debounce stuck)
     closeOpenDrop()
     local ok, err = pcall(function()
-        if oldPage then
-            TweenService:Create(oldPage.frame, TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
-                { GroupTransparency = 1 }):Play()
-            task.wait(0.12)
-            oldPage.frame.Visible = false
-        end
+        if oldPage then oldPage.frame.Visible = false end
         body.CanvasPosition = Vector2.new(0, 0)
-        newPage.frame.GroupTransparency = 1
         newPage.pad.PaddingTop = UDim.new(0, 14)
         newPage.frame.Visible = true
-        TweenService:Create(newPage.frame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-            { GroupTransparency = 0 }):Play()
         TweenService:Create(newPage.pad, TweenInfo.new(0.42, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
             { PaddingTop = UDim.new(0, 0) }):Play()
         -- the open cards' contents come in one after another (headers are there at once); 8 cards at most wait
@@ -3153,9 +3202,6 @@ end
 -- bound controls: the value lives in Config[key] and is saved on every change; cb(v) runs after the save.
 -- cb is not called when the control is built (same as UI.toggle); it runs when a config load changes the value.
 UI.bind = {}
-function UI._binder(key, cb)
-    return function(v) Config[key] = v; SaveConfig(); if cb then cb(v) end end
-end
 function UI._bindAdd(key, ctl, cb)
     UI._bound[#UI._bound + 1] = { key = key, ctl = ctl, cb = cb }
     return ctl
@@ -3177,6 +3223,14 @@ function UI._refreshBound()
             pcall(b.ctl.Set, b.ctl, v)
             if b.cb then safe(b.cb, v) end
         end
+    end
+end
+-- wrapper de callback dos controles bind: salva em Config e repassa pro cb do usuário
+function UI._binder(key, cb)
+    return function(v)
+        Config[key] = v
+        SaveConfig()
+        if cb then safe(cb, v) end
     end
 end
 function UI.bind.toggle(parent, label, key, cb, opts)
@@ -4388,13 +4442,12 @@ Button(panicBody, "Panic now (stop everything)", panic, nil, "alert-triangle")
 end)()
 
 -- ============================================================================
-
 -- boot: call once, after every tab has been added
 UI.start = function()
     if UI._started then return end
     UI._started = true
--- the Settings entry always goes last in the sidebar
-AddNavItem("settings", "Settings",   "settings")
+    -- the Settings entry always goes last in the sidebar
+    AddNavItem("settings", "Settings",   "settings")
 
 -- the page open when the script last ran (Home the first time, or when that page no longer exists)
 UI._selectPage((Config.lastPage and pages[Config.lastPage]) and Config.lastPage or "home")
